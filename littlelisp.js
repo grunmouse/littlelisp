@@ -1,4 +1,3 @@
-;(function(exports) {
   var library = {
     first: function(x) {
       return x[0];
@@ -21,7 +20,8 @@
     this.get = function(identifier) {
       if (identifier in this.scope) {
         return this.scope[identifier];
-      } else if (this.parent !== undefined) {
+      }
+	  else if (this.parent !== undefined) {
         return this.parent.get(identifier);
       }
     };
@@ -59,11 +59,13 @@
   var interpretList = function(input, context) {
     if (input.length > 0 && input[0].value in special) {
       return special[input[0].value](input, context);
-    } else {
+    }
+	else {
       var list = input.map(function(x) { return interpret(x, context); });
       if (list[0] instanceof Function) {
         return list[0].apply(undefined, list.slice(1));
-      } else {
+      }
+      else {
         return list;
       }
     }
@@ -72,11 +74,14 @@
   var interpret = function(input, context) {
     if (context === undefined) {
       return interpret(input, new Context(library));
-    } else if (input instanceof Array) {
+    }
+    else if (input instanceof Array) {
       return interpretList(input, context);
-    } else if (input.type === "identifier") {
+    }
+    else if (input.type === "identifier") {
       return context.get(input.value);
-    } else if (input.type === "number" || input.type === "string") {
+    }
+    else if (input.type === "number" || input.type === "string") {
       return input.value;
     }
   };
@@ -84,9 +89,11 @@
   var categorize = function(input) {
     if (!isNaN(parseFloat(input))) {
       return { type:'number', value: parseFloat(input) };
-    } else if (input[0] === '"' && input.slice(-1) === '"') {
+    }
+    else if (input[0] === '"' && input.slice(-1) === '"') {
       return { type:'string', value: input.slice(1, -1) };
-    } else {
+    }
+    else {
       return { type:'identifier', value: input };
     }
   };
@@ -94,16 +101,20 @@
   var parenthesize = function(input, list) {
     if (list === undefined) {
       return parenthesize(input, []);
-    } else {
+    } 
+	else {
       var token = input.shift();
       if (token === undefined) {
         return list.pop();
-      } else if (token === "(") {
+      } 
+	  else if (token === "(") {
         list.push(parenthesize(input, []));
         return parenthesize(input, list);
-      } else if (token === ")") {
+      } 
+	  else if (token === ")") {
         return list;
-      } else {
+      } 
+	  else {
         return parenthesize(input, list.concat(categorize(token)));
       }
     }
@@ -111,28 +122,29 @@
 
   var tokenize = function(input) {
     return input.split('"')
-                .map(function(x, i) {
-                   if (i % 2 === 0) { // not in string
-                     return x.replace(/\(/g, ' ( ')
-                             .replace(/\)/g, ' ) ');
-                   } else { // in string
-                     return x.replace(/ /g, "!whitespace!");
-                   }
-                 })
-                .join('"')
-                .trim()
-                .split(/\s+/)
-                .map(function(x) {
-                  return x.replace(/!whitespace!/g, " ");
-                });
+      .map(function(x, i) {
+        if (i % 2 === 0) { // not in string
+          return x.replace(/\(/g, ' ( ')
+                  .replace(/\)/g, ' ) ');
+        }
+        else { // in string
+          return x.replace(/ /g, "!whitespace!");
+        }
+      })
+      .join('"')
+      .trim()
+      .split(/\s+/)
+      .map(function(x) {
+        return x.replace(/!whitespace!/g, " ");
+      });
   };
 
   var parse = function(input) {
     return parenthesize(tokenize(input));
   };
 
-  exports.littleLisp = {
+  module.exports = {
+	Context
     parse: parse,
     interpret: interpret
   };
-})(typeof exports === 'undefined' ? this : exports);
